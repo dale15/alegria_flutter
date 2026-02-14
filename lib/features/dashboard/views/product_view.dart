@@ -165,7 +165,7 @@ Widget _buildCategoryChips(BuildContext context) {
 
 Widget _buildProductGrid(BuildContext context) {
   final cartVm = context.read<CartViewModel>();
-  const String baseUrl = "http://10.0.2.2:5000";
+  const String baseUrl = "http://134.209.102.168:5000";
 
   return Consumer<DashboardViewModel>(
     builder: (_, vm, __) {
