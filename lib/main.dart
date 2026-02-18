@@ -1,4 +1,7 @@
 import 'package:alegria_flutter/core/api/api_service.dart';
+import 'package:alegria_flutter/features/daily_report/data/daily_report_remote_datasource.dart';
+import 'package:alegria_flutter/features/daily_report/data/daily_report_repository_impl.dart';
+import 'package:alegria_flutter/features/daily_report/view_model/daily_report_view_model.dart';
 import 'package:alegria_flutter/features/dashboard/data/category/category_remote_datasource.dart';
 import 'package:alegria_flutter/features/dashboard/data/category/category_repository_impl.dart';
 import 'package:alegria_flutter/features/dashboard/data/discount/discount_remote_datasource.dart';
@@ -43,6 +46,9 @@ void main() {
   );
   final salesInvoiceRepository = SalesInvoiceRepositoryImpl(salesInvoiceRemote);
 
+  final dailyReportRemote = DailyReportRemoteDatasource(apiService);
+  final dailyReportRepository = DailyReportRepositoryImpl(dailyReportRemote);
+
   runApp(
     MultiProvider(
       providers: [
@@ -60,6 +66,10 @@ void main() {
         ChangeNotifierProvider(
           create: (context) => SalesInvoiceViewModel(salesInvoiceRepository),
         ),
+
+        ChangeNotifierProvider(
+          create: (_) => DailyReportViewModel(dailyReportRepository),
+        ),
       ],
       child: const MyApp(),
     ),
@@ -76,6 +86,7 @@ class MyApp extends StatelessWidget {
       title: 'Alegria Bakeshop',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
+        useMaterial3: true,
         colorScheme: .fromSeed(seedColor: Colors.deepPurple),
         scaffoldBackgroundColor: Colors.white,
         appBarTheme: const AppBarTheme(backgroundColor: Colors.white),

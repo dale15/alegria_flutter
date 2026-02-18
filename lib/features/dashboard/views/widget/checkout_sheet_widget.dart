@@ -12,14 +12,13 @@ class CheckoutSheet extends StatefulWidget {
 
 class _CheckoutSheetState extends State<CheckoutSheet> {
   final TextEditingController _cashController = TextEditingController();
-  double _cash = 0;
 
   @override
   Widget build(BuildContext context) {
     final subtotal = widget.cartVm.subtotal;
     final discount = widget.cartVm.discountAmount;
     final total = widget.cartVm.total;
-    final change = _cash - total;
+    final change = widget.cartVm.change;
 
     return Padding(
       padding: const EdgeInsets.all(20),
@@ -63,45 +62,72 @@ class _CheckoutSheetState extends State<CheckoutSheet> {
             ),
           ),
 
+          const SizedBox(height: 8),
+
+          const Text(
+            "Payment Method",
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+
+          const SizedBox(height: 12),
+
+          Row(
+            children: [
+              Expanded(
+                child: _buildPaymentButton(PaymentMethod.cash, "💵 Cash"),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _buildPaymentButton(PaymentMethod.gcash, "📱 GCash"),
+              ),
+            ],
+          ),
+
           const SizedBox(height: 20),
 
           /// Cash Input (Modern)
-          TextField(
-            controller: _cashController,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              labelText: "Cash Received",
-              prefixText: "₱ ",
-              filled: true,
-              fillColor: Colors.grey.shade100,
-              border: OutlineInputBorder(
+          if (widget.cartVm.selectedPayment == PaymentMethod.cash) ...[
+            const SizedBox(height: 20),
+
+            TextField(
+              controller: _cashController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: "Cash Received",
+                prefixText: "₱ ",
+                filled: true,
+                fillColor: Colors.grey.shade100,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+              onChanged: (value) {
+                widget.cartVm.cashReceived = double.tryParse(value) ?? 0;
+                setState(() {});
+              },
+            ),
+
+            const SizedBox(height: 16),
+
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: widget.cartVm.change >= 0
+                    ? Colors.green.shade50
+                    : Colors.red.shade50,
                 borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide.none,
+              ),
+              child: _buildRow(
+                "Change",
+                widget.cartVm.change < 0 ? 0 : widget.cartVm.change,
+                valueColor: widget.cartVm.change >= 0
+                    ? Colors.green
+                    : Colors.red,
+                isBold: true,
               ),
             ),
-            onChanged: (value) {
-              setState(() {
-                _cash = double.tryParse(value) ?? 0;
-              });
-            },
-          ),
-
-          const SizedBox(height: 16),
-
-          /// Change Display
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: change >= 0 ? Colors.green.shade50 : Colors.red.shade50,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: _buildRow(
-              "Change",
-              change < 0 ? 0 : change,
-              valueColor: change >= 0 ? Colors.green : Colors.red,
-              isBold: true,
-            ),
-          ),
+          ],
 
           const SizedBox(height: 20),
 
@@ -116,7 +142,9 @@ class _CheckoutSheetState extends State<CheckoutSheet> {
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              onPressed: _cash >= total ? () => _processOrder(context) : null,
+              onPressed: widget.cartVm.cashReceived >= total
+                  ? () => _processOrder(context)
+                  : null,
               child: const Text(
                 "Confirm Payment",
                 style: TextStyle(fontSize: 16, color: Colors.white),
@@ -172,5 +200,44 @@ class _CheckoutSheetState extends State<CheckoutSheet> {
         context,
       ).showSnackBar(SnackBar(content: Text("Order failed: $e")));
     }
+  }
+
+  Widget _buildPaymentButton(PaymentMethod method, String label) {
+    final isSelected = widget.cartVm.selectedPayment == method;
+
+    return GestureDetector(
+      onTap: () {
+        widget.cartVm.selectedPayment = method;
+        setState(() {});
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? const Color.fromARGB(255, 241, 66, 45)
+              : Colors.grey.shade200,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : [],
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: isSelected ? Colors.white : Colors.black,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

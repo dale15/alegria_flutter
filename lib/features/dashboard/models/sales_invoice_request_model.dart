@@ -2,16 +2,21 @@ class SalesInvoiceRequestModel {
   final int? discountId;
   final double? tax;
   final List<SalesInvoiceItemRequest> items;
+  final List<SalesInvoicePaymentRequest> payments; // 👈 ADD THIS
 
-  SalesInvoiceRequestModel({this.discountId, this.tax, required this.items});
+  SalesInvoiceRequestModel({
+    this.discountId,
+    this.tax,
+    required this.items,
+    required this.payments,
+  });
 
-  Map<String, dynamic> toJson() {
-    return {
-      "discountId": discountId,
-      "tax": tax,
-      "items": items.map((e) => e.toJson()).toList(),
-    };
-  }
+  Map<String, dynamic> toJson() => {
+    "discountId": discountId,
+    "tax": tax,
+    "items": items.map((e) => e.toJson()).toList(),
+    "payments": payments.map((e) => e.toJson()).toList(),
+  };
 }
 
 class SalesInvoiceItemRequest {
@@ -52,4 +57,19 @@ class SalesInvoiceModifierRequest {
       "priceAdjustment": priceAdjustment,
     };
   }
+}
+
+class SalesInvoicePaymentRequest {
+  final int paymentMethod;
+  final double amount;
+
+  SalesInvoicePaymentRequest({
+    required this.paymentMethod,
+    required this.amount,
+  });
+
+  Map<String, dynamic> toJson() => {
+    "paymentMethod": paymentMethod,
+    "amount": amount,
+  };
 }

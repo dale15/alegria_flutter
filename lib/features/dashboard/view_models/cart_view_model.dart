@@ -4,6 +4,8 @@ import 'package:alegria_flutter/features/dashboard/models/product_model.dart';
 import 'package:alegria_flutter/features/dashboard/models/sales_invoice_request_model.dart';
 import 'package:flutter/material.dart';
 
+enum PaymentMethod { cash, gcash, card, bankTransfer }
+
 class CartViewModel extends ChangeNotifier {
   final SalesInvoiceRequestRepository _invoiceRepo;
 
@@ -19,8 +21,12 @@ class CartViewModel extends ChangeNotifier {
   String _discountType = "none"; // none | percent |
   String get discountType => _discountType;
 
-  int _selectedDiscount = 0;
-  int get selectedDiscount => _selectedDiscount;
+  int? _selectedDiscount = 0;
+  int? get selectedDiscount => _selectedDiscount;
+
+  PaymentMethod selectedPayment = PaymentMethod.cash;
+
+  double cashReceived = 0;
 
   bool get hasDiscount => _discountType != "none";
 
@@ -57,6 +63,24 @@ class CartViewModel extends ChangeNotifier {
     }
 
     return true;
+  }
+
+  int paymentMethodToInt(PaymentMethod method) {
+    switch (method) {
+      case PaymentMethod.cash:
+        return 1;
+      case PaymentMethod.gcash:
+        return 2;
+      case PaymentMethod.card:
+        return 3;
+      case PaymentMethod.bankTransfer:
+        return 4;
+    }
+  }
+
+  double get change {
+    if (selectedPayment != PaymentMethod.cash) return 0;
+    return cashReceived - total;
   }
 
   void applyDiscount({
@@ -136,22 +160,30 @@ class CartViewModel extends ChangeNotifier {
   }
 
   SalesInvoiceRequestModel buildInvoice() {
+    final payments = [
+      SalesInvoicePaymentRequest(
+        paymentMethod: paymentMethodToInt(selectedPayment),
+        amount: selectedPayment == PaymentMethod.cash ? cashReceived : total,
+      ),
+    ];
+
     return SalesInvoiceRequestModel(
-      discountId: _selectedDiscount,
-      tax: null, // or your tax logic later
+      discountId: _selectedDiscount == 0 ? null : _selectedDiscount,
+      tax: null,
       items: _cartItems.map((item) {
         return SalesInvoiceItemRequest(
           productId: item.product.id,
           quantity: item.quantity,
           modifiers: item.selectedOptions.map((option) {
             return SalesInvoiceModifierRequest(
-              modifierName: option.name, // make sure exists
+              modifierName: option.name,
               optionName: option.name,
               priceAdjustment: option.priceAdjustment,
             );
           }).toList(),
         );
       }).toList(),
+      payments: payments, // 👈 IMPORTANT
     );
   }
 

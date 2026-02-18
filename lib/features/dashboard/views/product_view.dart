@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:alegria_flutter/features/daily_report/views/daily_report_view.dart';
 import 'package:alegria_flutter/features/dashboard/view_models/cart_view_model.dart';
 import 'package:alegria_flutter/features/dashboard/view_models/dashboard_view_model.dart';
 import 'package:alegria_flutter/features/dashboard/views/widget/modifier_sheet_widget.dart';
@@ -27,7 +28,7 @@ class ProductView extends StatelessWidget {
 }
 
 Widget _buildHeader(BuildContext context) {
-  final now = DateTime.now();
+  final now = DateTime.now().toLocal();
   final cartVm = context.watch<CartViewModel>();
 
   return Padding(
@@ -51,33 +52,93 @@ Widget _buildHeader(BuildContext context) {
         ),
 
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            IconButton(
-              icon: const Icon(Icons.receipt_long, color: Colors.black),
-              tooltip: "Order History",
-              onPressed: () {
+            InkWell(
+              borderRadius: BorderRadius.circular(30),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const DailyReportPage()),
+                );
+              },
+              child: CircleAvatar(
+                backgroundColor: Color.fromARGB(255, 241, 66, 45),
+                child: Icon(Icons.bar_chart, color: Colors.white),
+              ),
+            ),
+
+            const SizedBox(width: 10.0),
+
+            InkWell(
+              borderRadius: BorderRadius.circular(30),
+              onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const SalesInvoiceView()),
                 );
               },
+              child: CircleAvatar(
+                radius: 22,
+                backgroundColor: Color.fromARGB(255, 241, 66, 45),
+                child: const Icon(
+                  Icons.receipt_long,
+                  color: Colors.white,
+                  size: 22,
+                ),
+              ),
             ),
 
-            Stack(
-              children: [
-                const Icon(Icons.shopping_cart),
-                if (cartVm.totalItems > 0)
-                  Positioned(
-                    right: 0,
-                    child: CircleAvatar(
-                      radius: 8,
-                      child: Text(
-                        cartVm.totalItems.toString(),
-                        style: const TextStyle(fontSize: 10),
-                      ),
+            const SizedBox(width: 10.0),
+
+            InkWell(
+              borderRadius: BorderRadius.circular(30),
+              onTap: () {
+                // open cart
+              },
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  CircleAvatar(
+                    radius: 22,
+                    backgroundColor: Color.fromARGB(255, 241, 66, 45),
+                    child: const Icon(
+                      Icons.shopping_cart,
+                      color: Colors.white,
+                      size: 22,
                     ),
                   ),
-              ],
+
+                  if (cartVm.totalItems > 0)
+                    Positioned(
+                      right: -4,
+                      top: -4,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 18,
+                          minHeight: 18,
+                        ),
+                        child: Center(
+                          child: Text(
+                            cartVm.totalItems > 99
+                                ? "99+"
+                                : cartVm.totalItems.toString(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
           ],
         ),
